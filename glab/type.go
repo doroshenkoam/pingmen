@@ -13,6 +13,7 @@ const (
 
 // Webhook - base webhook struct (exclude events)
 type Webhook struct {
-	Events []gitlab.EventType
-	Config *config.Config
+	event       gitlab.EventType
+	config      *config.Config
+	mrToBotChan chan *gitlab.MergeEvent
 }

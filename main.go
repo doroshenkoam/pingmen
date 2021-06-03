@@ -4,8 +4,9 @@ import (
 	"flag"
 	"log"
 	"os"
-
 	"pingmen/config"
+
+	tg "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
 func main() {
@@ -53,4 +54,16 @@ func main() {
 	}
 	exitCode++
 
+	bot, err := tg.NewBotAPI(cfg.Telegram.Token)
+	if err != nil {
+		log.Printf("Bot initing error: %s", err)
+		os.Exit(exitCode)
+	}
+	exitCode++
+
+	if cfg.Telegram.Debug {
+		bot.Debug = true
+	}
+
+	//TODO: цепануть бота к группе
 }

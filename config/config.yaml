@@ -1,0 +1,5 @@
+gitlab:
+  token: "token"
+  webhook_host: "public_api"
+  webhook_method: "webhook"
+  webhook_port: 80
