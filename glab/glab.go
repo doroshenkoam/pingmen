@@ -45,6 +45,7 @@ func (w *Webhook) Run() {
 // listenPath - create path for ListenAndServe
 func (w *Webhook) listenPath() string {
 	var build strings.Builder
+	defer build.Reset()
 
 	build.WriteString(w.config.Gitlab.WebhookHost)
 	build.WriteString(":")
@@ -102,7 +103,7 @@ func (w *Webhook) validate(r *http.Request) (*gitlab.MergeEvent, error) {
 	return parseBody(payload)
 }
 
-// parseBody - parse body mergerequest response
+// parseBody - parse body merge_request response
 func parseBody(payload []byte) (*gitlab.MergeEvent, error) {
 	var mr gitlab.MergeEvent
 

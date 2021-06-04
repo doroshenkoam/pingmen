@@ -16,3 +16,6 @@
 
 # idea
 .idea/
+
+# config
+*-local.yaml

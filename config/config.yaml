@@ -3,3 +3,17 @@ gitlab:
   webhook_host: "public_api"
   webhook_method: "webhook"
   webhook_port: 80
+  actions:
+    - "action1"
+    - "action2"
+telegram:
+  token: "token"
+  chat_id: 1
+  workers_count: 2
+  debug: true
+users:
+  - "user1"
+  - "user2"
+projects:
+  - "project1"
+  - "project2"

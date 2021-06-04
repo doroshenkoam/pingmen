@@ -4,7 +4,13 @@ import (
 	"flag"
 	"log"
 	"os"
+	"os/signal"
 	"pingmen/config"
+	"pingmen/daemon"
+	"pingmen/glab"
+	"sync"
+
+	"github.com/xanzy/go-gitlab"
 
 	tg "github.com/go-telegram-bot-api/telegram-bot-api"
 )
@@ -46,7 +52,7 @@ func main() {
 	}
 	exitCode++
 
-	if err := config.Load(cfgFile, &cfg); err != nil {
+	if err := config.Load(*cfgFile, &cfg); err != nil {
 		log.Printf("Config file unmarshal error: %s", err)
 		_, usage := flag.UnquoteUsage(flg.Lookup("c"))
 		log.Printf("Usage: %v", usage)
@@ -61,9 +67,33 @@ func main() {
 	}
 	exitCode++
 
+	log.Printf("Authorized on account %s", bot.Self.UserName)
 	if cfg.Telegram.Debug {
 		bot.Debug = true
+		log.Printf("Debug enabled")
 	}
 
-	//TODO: цепануть бота к группе
+	doneChan := make(chan struct{})
+	mrChan := make(chan *gitlab.MergeEvent)
+
+	interrupter := make(chan os.Signal, 1)
+	signal.Notify(interrupter, os.Interrupt)
+
+	wg := sync.WaitGroup{}
+
+	d := daemon.Init(&cfg, bot, &wg, mrChan, doneChan)
+	d.Receiver()
+
+	g := glab.Init(&cfg, mrChan)
+	g.Run()
+
+mLoop:
+	for {
+		select {
+		case <-interrupter:
+			doneChan <- struct{}{}
+			wg.Wait()
+			break mLoop
+		}
+	}
 }

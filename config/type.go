@@ -10,8 +10,10 @@ type Config struct {
 		Actions []string `yaml:"actions"`
 	} `yaml:"gitlab"`
 	Telegram struct {
-		Token string `yaml:"token"`
-		Debug bool   `yaml:"debug"`
+		Token        string `yaml:"token"`
+		ChatID       int64  `yaml:"chat_id"`
+		WorkersCount int    `yaml:"workers_count"`
+		Debug        bool   `yaml:"debug"`
 	} `yaml:"telegram"`
 	Users struct {
 		Dictionary []string `yaml:"dictionary"`
@@ -20,5 +22,3 @@ type Config struct {
 		Dictionary []string `yaml:"dictionary"`
 	} `yaml:"projects"`
 }
-
-// TODO: валидация

@@ -1,11 +1,34 @@
 package daemon
 
-import "log"
+import (
+	"log"
+	"strings"
 
-// Receiver - analysis merge requests and sending to the bot
+	tg "github.com/go-telegram-bot-api/telegram-bot-api"
+
+	"github.com/xanzy/go-gitlab"
+)
+
+// Receiver - analysis merge requests and sending to the chat
 func (t *Typ) Receiver() {
-	log.Printf("Glab:Receiver: daemon Receiver start")
-	defer log.Printf("Glab:Receiver: daemon receiver end")
+	log.Printf("Daemon:Receiver: daemon Receiver start")
+	defer log.Printf("Daemon:Receiver: daemon receiver end")
+
+	for n := 0; n >= t.cfg.Telegram.WorkersCount; n++ {
+		t.wg.Add(1)
+		go t.receiverWorker(n)
+	}
+}
+
+// receiverWorker - worker for receiver daemon
+func (t *Typ) receiverWorker(n int) {
+	log.Printf("Daemon:receiverWorker: №%d start", n)
+
+	defer func() {
+		if err := recover(); err != nil {
+			log.Printf("Daemon:receiverWorker: №%d PANIC: %#v", n, err)
+		}
+	}()
 
 	for {
 		select {
@@ -18,12 +41,11 @@ func (t *Typ) Receiver() {
 				continue
 			}
 
-			// TODO:
-			//mr.ObjectAttributes.URL
-			//mr.ObjectAttributes.Title
-			//mr.ObjectAttributes.Description
+			t.sendMsg(t.createMsg(mr))
 
 		case <-t.doneChan:
+			log.Printf("Daemon:receiverWorker: №%d end", n)
+			t.wg.Done()
 			return
 		}
 	}
@@ -49,4 +71,39 @@ func (t *Typ) isAction(action string) bool {
 	}
 
 	return false
+}
+
+// createMsg - creating message about merge request operation
+func (t *Typ) createMsg(mr *gitlab.MergeEvent) string {
+	var msg strings.Builder
+	defer msg.Reset()
+
+	msg.WriteString(mr.ObjectAttributes.Title)
+	msg.WriteString("\n")
+	msg.WriteString(mr.ObjectAttributes.URL)
+	msg.WriteString("\n")
+	msg.WriteString(mr.ObjectAttributes.Description)
+	msg.WriteString("\n")
+
+	for i := range t.cfg.Users.Dictionary {
+
+		if i != 0 {
+			msg.WriteString(" ")
+		}
+
+		msg.WriteString("@")
+		msg.WriteString(t.cfg.Users.Dictionary[i])
+	}
+
+	return msg.String()
+}
+
+// sendMsg - sending message to chat
+func (t *Typ) sendMsg(msg string) {
+	log.Printf("Sending message (chat_id:%d): \n%s", t.cfg.Telegram.ChatID, msg)
+
+	_, err := t.bot.Send(tg.NewMessage(t.cfg.Telegram.ChatID, msg))
+	if err != nil {
+		log.Fatalf("Sending message error: %s", err)
+	}
 }
