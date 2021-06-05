@@ -86,8 +86,9 @@ https://api.telegram.org/bot<bot_token>/getUpdates
 Project -> ```Settings``` -> ```Webhooks```
 1. Enter in field URL ```http://<host>:<webhook_port>/<webhook_method>```
 2. Check box on ```Merge request events```
-3. Press button ```Add webhook```
-4. Created webhook can be tested -> button ```Test```
+3. Enter the key from the config file in the Token field   
+4. Press button ```Add webhook```
+5. Created webhook can be tested -> button ```Test```
 
 # TODO: <a name="todo"></a>
 1. Log levels

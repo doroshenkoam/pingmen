@@ -97,10 +97,11 @@ func TestTyp_createMsg(t1 *testing.T) {
 						Description: "Что то поменяли",
 						URL:         "gitlab.com/merge",
 						Title:       "Merge",
+						Action:      "open",
 					},
 				},
 			},
-			want: "Merge\ngitlab.com/merge\nЧто то поменяли\n@first @second",
+			want: "open: Merge\ngitlab.com/merge\nЧто то поменяли\n@first @second",
 		},
 	}
 	for _, tt := range tests {

@@ -84,5 +84,6 @@ https://api.telegram.org/bot<bot_token>/getUpdates
 Проект -> ```Settings``` -> ```Webhooks```
 1. Ввести в поле URL ```http://<host>:<webhook_port>/<webhook_method>```
 2. Отметить галочку на ```Merge request events```
-3. Нажать кнопку ```Add webhook```
-4. Созданный webhook можно протестировать -> кнопка ```Test```
+3. Ввести в поле Token ключ из конфиг файла 
+4. Нажать кнопку ```Add webhook```
+5. Созданный webhook можно протестировать -> кнопка ```Test```
