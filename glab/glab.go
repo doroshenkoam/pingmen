@@ -1,6 +1,7 @@
 package glab
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,12 +12,13 @@ import (
 	"pingmen/config"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/xanzy/go-gitlab"
 )
 
 // Init - initialize webhook
-func Init(cfg *config.Config, mrChan chan *gitlab.MergeEvent) *Webhook {
+func Init(cfg *config.Config, mrChan chan *gitlab.MergeEvent, doneChan <-chan struct{}, wg *sync.WaitGroup) *Webhook {
 	log.Printf("Glab:Init: start")
 	defer log.Printf("Glab:Init: inited")
 
@@ -24,6 +26,8 @@ func Init(cfg *config.Config, mrChan chan *gitlab.MergeEvent) *Webhook {
 		event:       gitlab.EventTypeMergeRequest,
 		config:      cfg,
 		mrToBotChan: mrChan,
+		doneChan:    doneChan,
+		wg:          wg,
 	}
 
 	return &w
@@ -34,12 +38,32 @@ func (w *Webhook) Run() {
 	log.Printf("Glab:Run: start")
 	defer log.Printf("Glab:Run: end")
 
-	serveMux := http.NewServeMux()
-	serveMux.Handle(w.config.Gitlab.WebhookMethod, w)
+	server := &http.Server{Addr: w.listenPath(), Handler: w}
 
-	if err := http.ListenAndServe(w.listenPath(), serveMux); err != nil {
-		log.Fatalf("Glab:Run: HTTP server error: %v", err)
-	}
+	go func() {
+		if err := server.ListenAndServe(); err != nil {
+			log.Fatalf("Glab:Run: HTTP server error: %v", err)
+		}
+
+	}()
+
+	w.wg.Add(1)
+	go func() {
+		defer w.wg.Done()
+
+		for {
+			select {
+			case <-w.doneChan:
+				if err := server.Shutdown(context.Background()); err != nil {
+					log.Fatalf("Glab:Run: server shutdown error: %v\nkill process manual", err)
+					return
+				}
+
+				log.Printf("Glab:Run: webhook server: end")
+			}
+		}
+	}()
+
 }
 
 // listenPath - create path for ListenAndServe
@@ -47,7 +71,6 @@ func (w *Webhook) listenPath() string {
 	var build strings.Builder
 	defer build.Reset()
 
-	build.WriteString(w.config.Gitlab.WebhookHost)
 	build.WriteString(":")
 	build.WriteString(strconv.Itoa(w.config.Gitlab.WebhookPort))
 

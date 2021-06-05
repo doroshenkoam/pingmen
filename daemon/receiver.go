@@ -14,7 +14,7 @@ func (t *Typ) Receiver() {
 	log.Printf("Daemon:Receiver: daemon Receiver start")
 	defer log.Printf("Daemon:Receiver: daemon receiver end")
 
-	for n := 0; n >= t.cfg.Telegram.WorkersCount; n++ {
+	for n := 0; n < t.cfg.Telegram.WorkersCount; n++ {
 		t.wg.Add(1)
 		go t.receiverWorker(n)
 	}
@@ -33,6 +33,8 @@ func (t *Typ) receiverWorker(n int) {
 	for {
 		select {
 		case mr := <-t.mrToBotChan:
+			log.Printf("Daemon:receiverWorker: №%d get mr", n)
+
 			if !t.isExistedProject(mr.Project.Name) {
 				continue
 			}

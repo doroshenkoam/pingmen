@@ -70,7 +70,7 @@ func main() {
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 	if cfg.Telegram.Debug {
 		bot.Debug = true
-		log.Printf("Debug enabled")
+		log.Printf("Bot debug enabled")
 	}
 
 	doneChan := make(chan struct{})
@@ -84,16 +84,18 @@ func main() {
 	d := daemon.Init(&cfg, bot, &wg, mrChan, doneChan)
 	d.Receiver()
 
-	g := glab.Init(&cfg, mrChan)
+	g := glab.Init(&cfg, mrChan, doneChan, &wg)
 	g.Run()
 
 mLoop:
 	for {
 		select {
 		case <-interrupter:
-			doneChan <- struct{}{}
+			close(doneChan)
 			wg.Wait()
 			break mLoop
 		}
 	}
+
+	log.Printf("Bye")
 }

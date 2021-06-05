@@ -50,10 +50,6 @@ func (cfg *Config) validate() error {
 		return errForFields("gitlab webhook port")
 	}
 
-	if cfg.Gitlab.WebhookHost == "" {
-		return errForFields("gitlab webhook host")
-	}
-
 	if cfg.Gitlab.Token == "" {
 		return errForFields("gitlab token")
 	}
