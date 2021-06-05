@@ -80,6 +80,8 @@ func (t *Typ) createMsg(mr *gitlab.MergeEvent) string {
 	var msg strings.Builder
 	defer msg.Reset()
 
+	msg.WriteString(mr.ObjectAttributes.Action)
+	msg.WriteString(": ")
 	msg.WriteString(mr.ObjectAttributes.Title)
 	msg.WriteString("\n")
 	msg.WriteString(mr.ObjectAttributes.URL)
