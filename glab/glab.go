@@ -41,6 +41,8 @@ func (w *Webhook) Run() {
 	server := &http.Server{Addr: w.listenPath(), Handler: w}
 
 	go func() {
+		log.Printf("Webhook start: listen port:%d", w.config.Gitlab.WebhookPort)
+
 		if err := server.ListenAndServe(); err != nil {
 			log.Fatalf("Glab:Run: HTTP server error: %v", err)
 		}
@@ -78,8 +80,11 @@ func (w *Webhook) listenPath() string {
 }
 
 func (w *Webhook) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	log.Printf("Glab:ServeHTTP: webhook used")
+
 	mr, err := w.validate(request)
 	if err != nil {
+		log.Printf("Glab:ServeHTTP: error: %s", err)
 		writer.WriteHeader(500)
 		writer.Write([]byte(fmt.Sprintf("could parse the webhook event: %v", err)))
 		return
@@ -130,7 +135,7 @@ func (w *Webhook) validate(r *http.Request) (*gitlab.MergeEvent, error) {
 func parseBody(payload []byte) (*gitlab.MergeEvent, error) {
 	var mr gitlab.MergeEvent
 
-	if err := json.Unmarshal(payload, mr); err != nil {
+	if err := json.Unmarshal(payload, &mr); err != nil {
 		return nil, err
 	}
 

@@ -1,11 +1,12 @@
 gitlab:
   token: "token"
-  webhook_host: "public_api"
   webhook_method: "webhook"
   webhook_port: 80
   actions:
-    - "action1"
-    - "action2"
+    - "open"
+    - "reopen"
+    - "update"
+    - "close"
 telegram:
   token: "token"
   chat_id: 1
