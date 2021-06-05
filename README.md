@@ -10,11 +10,13 @@ Ping bot for gitlab merge requests
 
 ## Run
 ```zsh
+go mod tidy
 go run main.go -c <your_config_file_name>.yaml
 ```
 
 ## Build
 ```zsh
+go mod tidy
 env GOOS=<your_OS> go build 
 ```
 

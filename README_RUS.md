@@ -11,11 +11,13 @@
 
 ## Запуск без сборки <a name="run"></a>
 ```zsh
+go mod tidy
 go run main.go -c <your_config_file_name>.yaml
 ```
 
 ## Сборка <a name="build"></a>
 ```zsh
+go mod tidy
 env GOOS=<your_OS> go build 
 ```
 
