@@ -17,7 +17,8 @@ import (
 
 func init() {
 	logrus.SetFormatter(&logrus.TextFormatter{
-		ForceColors: true,
+		ForceColors:   true,
+		FullTimestamp: true,
 	})
 
 	logrus.SetOutput(os.Stdout)
