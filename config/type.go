@@ -20,4 +20,5 @@ type Config struct {
 	Projects struct {
 		Dictionary []string `yaml:"dictionary"`
 	} `yaml:"projects"`
+	Loglevel string `yaml:"loglevel"`
 }

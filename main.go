@@ -2,24 +2,34 @@ package main
 
 import (
 	"flag"
-	"log"
 	"os"
 	"os/signal"
 	"pingmen/config"
 	"pingmen/daemon"
 	"pingmen/glab"
+	"pingmen/logWrap"
 	"sync"
 
-	"github.com/xanzy/go-gitlab"
-
 	tg "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/sirupsen/logrus"
+	"github.com/xanzy/go-gitlab"
 )
+
+func init() {
+	logrus.SetFormatter(&logrus.TextFormatter{
+		ForceColors: true,
+	})
+
+	logrus.SetOutput(os.Stdout)
+	logrus.SetLevel(logrus.InfoLevel)
+}
 
 func main() {
 
 	var (
 		exitCode = 1
 		cfg      config.Config
+		logger   = logWrap.SetBaseFields("main", "main")
 	)
 
 	flg := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
@@ -32,18 +42,22 @@ func main() {
 	flg.Parse(os.Args[1:])
 
 	if *logFile != "" {
-		log.Printf("Log file is: %s", *logFile)
+		logger.Info("Log file is: %s", *logFile)
 
 		lf, err := os.OpenFile(*logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0660)
 		if err != nil {
-			log.Printf("Error opening logfile: %s", err)
-			_, usage := flag.UnquoteUsage(flg.Lookup("o"))
-			log.Printf("Usage: %v", usage)
+			logger.WithField(
+				"error", err,
+			).Error("Error opening logfile")
+
+			_, usage := flag.UnquoteUsage(flg.Lookup("l"))
+
+			logger.Fatal("Usage: %v", usage)
 			os.Exit(exitCode)
 		}
 		defer lf.Close()
 
-		log.SetOutput(lf)
+		logrus.SetOutput(lf)
 	}
 
 	if *helpFlag {
@@ -53,24 +67,37 @@ func main() {
 	exitCode++
 
 	if err := config.Load(*cfgFile, &cfg); err != nil {
-		log.Printf("Config file unmarshal error: %s", err)
+		logger.WithField(
+			"error", err,
+		).Error("Config file unmarshal error")
+
 		_, usage := flag.UnquoteUsage(flg.Lookup("c"))
-		log.Printf("Usage: %v", usage)
+
+		logger.Fatal("Usage: %v", usage)
 		os.Exit(exitCode)
 	}
 	exitCode++
+
+	logWrap.SetLogLevel(cfg.Loglevel)
 
 	bot, err := tg.NewBotAPI(cfg.Telegram.Token)
 	if err != nil {
-		log.Printf("Bot initing error: %s", err)
+		logger.WithField(
+			"error", err,
+		).Info("Bot initing error")
+
 		os.Exit(exitCode)
 	}
 	exitCode++
 
-	log.Printf("Authorized on account %s", bot.Self.UserName)
+	logger.WithField(
+		"bot_user_name", bot.Self.UserName,
+	).Info("Authorized on account")
+
 	if cfg.Telegram.Debug {
 		bot.Debug = true
-		log.Printf("Bot debug enabled")
+
+		logger.Info("Bot debug enabled")
 	}
 
 	doneChan := make(chan struct{})
@@ -96,6 +123,4 @@ mLoop:
 			break mLoop
 		}
 	}
-
-	log.Printf("Bye")
 }

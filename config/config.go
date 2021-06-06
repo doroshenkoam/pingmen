@@ -3,17 +3,21 @@ package config
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
+	"pingmen/logWrap"
 
 	"gopkg.in/yaml.v2"
 )
 
 // Load - loading and parse config
 func Load(path string, cfg *Config) error {
-	log.Printf("Config:Load: start")
-	defer log.Printf("Config:Load: inited")
+	var (
+		logger = logWrap.SetBaseFields("config", "Load")
+	)
 
-	log.Printf("Config:Load: Config file is: %s", path)
+	logger.Info("Start")
+	defer logger.Info("Inited")
+
+	logger.Info("Config file is: %s", path)
 
 	cfgData, err := ioutil.ReadFile(path)
 	if err != nil {
