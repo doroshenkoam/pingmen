@@ -8,6 +8,7 @@
 4. [Файл конфигурации](#cfgfile)
 5. [Настройка telegram](#cfgtelegram)
 6. [Настройка gitlab](#cfggitlab)
+7. [TODO](#todo)
 
 ## Запуск без сборки <a name="run"></a>
 ```zsh
@@ -88,3 +89,7 @@ https://api.telegram.org/bot<bot_token>/getUpdates
 3. Ввести в поле Token ключ из конфиг файла 
 4. Нажать кнопку ```Add webhook```
 5. Созданный webhook можно протестировать -> кнопка ```Test```
+
+# TODO: <a name="todo"></a>
+1. Больше действий
+2. Шаблон сообщений

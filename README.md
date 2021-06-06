@@ -92,6 +92,5 @@ Project -> ```Settings``` -> ```Webhooks```
 5. Created webhook can be tested -> button ```Test```
 
 # TODO: <a name="todo"></a>
-1. Log levels
-2. More actions
-3. Message templates
+1. More actions
+2. Message templates
