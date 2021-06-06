@@ -1,3 +1,4 @@
+loglevel: "debug"
 gitlab:
   token: "token"
   webhook_method: "webhook"

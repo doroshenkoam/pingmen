@@ -1,8 +1,11 @@
 package daemon
 
 import (
-	"log"
+	"fmt"
+	"pingmen/logWrap"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 
 	tg "github.com/go-telegram-bot-api/telegram-bot-api"
 
@@ -11,8 +14,12 @@ import (
 
 // Receiver - analysis merge requests and sending to the chat
 func (t *Typ) Receiver() {
-	log.Printf("Daemon:Receiver: daemon Receiver start")
-	defer log.Printf("Daemon:Receiver: daemon receiver end")
+	var (
+		logger = logWrap.SetBaseFields("daemon", "Receiver")
+	)
+
+	logger.Info("Receiver start")
+	defer logger.Info("Receiver end")
 
 	for n := 0; n < t.cfg.Telegram.WorkersCount; n++ {
 		t.wg.Add(1)
@@ -22,31 +29,41 @@ func (t *Typ) Receiver() {
 
 // receiverWorker - worker for receiver daemon
 func (t *Typ) receiverWorker(n int) {
-	log.Printf("Daemon:receiverWorker: №%d start", n)
+	var (
+		logger = logWrap.SetBaseFields("daemon", fmt.Sprintf("receiverWorker-%d", n))
+	)
+
+	logger.Info("Start")
 
 	defer func() {
 		if err := recover(); err != nil {
-			log.Printf("Daemon:receiverWorker: №%d PANIC: %#v", n, err)
+			logger.Panic("PANIC: %#v", err)
 		}
 	}()
 
 	for {
 		select {
 		case mr := <-t.mrToBotChan:
-			log.Printf("Daemon:receiverWorker: №%d get mr", n)
+			logger.Debug("Get mr")
 
 			if !t.isExistedProject(mr.Project.Name) {
+				logger.WithField(
+					"project_name", mr.Project.Name,
+				).Debug("Skip mr")
 				continue
 			}
 
 			if !t.isAction(mr.ObjectAttributes.Action) {
+				logger.WithField(
+					"action", mr.ObjectAttributes.Action,
+				).Debug("Skip mr")
 				continue
 			}
 
 			t.sendMsg(t.createMsg(mr))
 
 		case <-t.doneChan:
-			log.Printf("Daemon:receiverWorker: №%d end", n)
+			logger.Info("End")
 			t.wg.Done()
 			return
 		}
@@ -104,10 +121,20 @@ func (t *Typ) createMsg(mr *gitlab.MergeEvent) string {
 
 // sendMsg - sending message to chat
 func (t *Typ) sendMsg(msg string) {
-	log.Printf("Sending message (chat_id:%d): \n%s", t.cfg.Telegram.ChatID, msg)
+	var (
+		logger = logWrap.SetBaseFields("daemon", "sendMsg")
+	)
+
+	// TODO:
+	logger.WithFields(logrus.Fields{
+		"chat_id": t.cfg.Telegram.ChatID,
+		"message": msg,
+	}).Debug("Send message")
 
 	_, err := t.bot.Send(tg.NewMessage(t.cfg.Telegram.ChatID, msg))
 	if err != nil {
-		log.Fatalf("Sending message error: %s", err)
+		logger.WithField(
+			"error", err,
+		).Error("Send message")
 	}
 }

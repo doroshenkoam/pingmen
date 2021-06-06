@@ -44,6 +44,7 @@ help flag usage
 
 ## Файл конфигурации <a name="cfgfile"></a>
 ```yaml
+loglevel: "debug" # уровенть логирования, по умолчанию warning
 gitlab: # настройки гитлаба
   token: "token" # токен для связи с гитлабом
   webhook_method: "webhook" # метод для хуков от гитлаба

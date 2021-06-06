@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"pingmen/config"
+	"pingmen/logWrap"
 	"strconv"
 	"strings"
 	"sync"
@@ -19,8 +20,12 @@ import (
 
 // Init - initialize webhook
 func Init(cfg *config.Config, mrChan chan *gitlab.MergeEvent, doneChan <-chan struct{}, wg *sync.WaitGroup) *Webhook {
-	log.Printf("Glab:Init: start")
-	defer log.Printf("Glab:Init: inited")
+	var (
+		logger = logWrap.SetBaseFields("glab", "Init")
+	)
+
+	logger.Info("Start")
+	defer logger.Info("Inited")
 
 	w := Webhook{
 		event:       gitlab.EventTypeMergeRequest,
@@ -35,16 +40,22 @@ func Init(cfg *config.Config, mrChan chan *gitlab.MergeEvent, doneChan <-chan st
 
 // Run - run webhook
 func (w *Webhook) Run() {
-	log.Printf("Glab:Run: start")
-	defer log.Printf("Glab:Run: end")
+	var (
+		logger = logWrap.SetBaseFields("glab", "Init")
+	)
+
+	logger.Info("Start")
+	defer logger.Info("End")
 
 	server := &http.Server{Addr: w.listenPath(), Handler: w}
 
 	go func() {
-		log.Printf("Webhook start: listen port:%d", w.config.Gitlab.WebhookPort)
+		logger.Info("Webhook start: listen port:%d", w.config.Gitlab.WebhookPort)
 
 		if err := server.ListenAndServe(); err != nil {
-			log.Fatalf("Glab:Run: HTTP server error: %v", err)
+			logger.WithField(
+				"error", err,
+			).Fatal("HTTP server error")
 		}
 
 	}()
@@ -57,11 +68,13 @@ func (w *Webhook) Run() {
 			select {
 			case <-w.doneChan:
 				if err := server.Shutdown(context.Background()); err != nil {
-					log.Fatalf("Glab:Run: server shutdown error: %v\nkill process manual", err)
+					logger.WithField(
+						"error", err,
+					).Fatal("Server shutdown error\nkill process manual")
 					return
 				}
 
-				log.Printf("Glab:Run: webhook server: end")
+				logger.Info("End")
 			}
 		}
 	}()
@@ -80,7 +93,11 @@ func (w *Webhook) listenPath() string {
 }
 
 func (w *Webhook) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	log.Printf("Glab:ServeHTTP: webhook used")
+	var (
+		logger = logWrap.SetBaseFields("glab", "ServeHTTP")
+	)
+
+	logger.Debug("Webhook used")
 
 	mr, err := w.validate(request)
 	if err != nil {
@@ -98,12 +115,20 @@ func (w *Webhook) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 
 // validate - validate webhooks
 func (w *Webhook) validate(r *http.Request) (*gitlab.MergeEvent, error) {
+	var (
+		logger = logWrap.SetBaseFields("glab", "validate")
+	)
+
 	defer func() {
 		if _, err := io.Copy(ioutil.Discard, r.Body); err != nil {
-			log.Printf("could discard request body: %v", err)
+			logger.WithField(
+				"error", err,
+			).Error("Could discard request body")
 		}
 		if err := r.Body.Close(); err != nil {
-			log.Printf("could not close request body: %v", err)
+			logger.WithField(
+				"error", err,
+			).Error("could not close request body")
 		}
 	}()
 

@@ -46,6 +46,7 @@ help flag usage
 
 ## Configuration file <a name="cfgfile"></a>
 ```yaml
+loglevel: "debug" # log level, by default warning 
 gitlab: # gitlab settings
   token: "token" # token for communication with gitlab
   webhook_method: "webhook" # method for hooks from gitlab
