@@ -50,7 +50,7 @@ func (w *Webhook) Run() {
 	server := &http.Server{Addr: w.listenPath(), Handler: w}
 
 	go func() {
-		logger.Info("Webhook start: listen port:%d", w.config.Gitlab.WebhookPort)
+		logger.Info("Webhook start: listen port: ", w.config.Gitlab.WebhookPort)
 
 		if err := server.ListenAndServe(); err != nil {
 			logger.WithField(

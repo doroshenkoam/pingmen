@@ -16,4 +16,5 @@ type Typ struct {
 	wg          *sync.WaitGroup
 	mrToBotChan <-chan *gitlab.MergeEvent
 	doneChan    <-chan struct{}
+	templ       *string
 }

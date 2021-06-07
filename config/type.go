@@ -16,6 +16,7 @@ type Config struct {
 	} `yaml:"telegram"`
 	Users struct {
 		Dictionary []string `yaml:"dictionary"`
+		Field      string   `yaml:"_"`
 	} `yaml:"users"`
 	Projects struct {
 		Dictionary []string `yaml:"dictionary"`
