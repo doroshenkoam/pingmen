@@ -12,7 +12,7 @@ import (
 
 // Init - init daemons
 func Init(cfg *config.Config, bot *tgbotapi.BotAPI, wg *sync.WaitGroup,
-	mrToBotChan <-chan *gitlab.MergeEvent, doneChan <-chan struct{}) *Typ {
+	mrToBotChan <-chan *gitlab.MergeEvent, doneChan <-chan struct{}, templ *string) *Typ {
 	var (
 		logger = logWrap.SetBaseFields("daemon", "Init")
 	)
@@ -26,5 +26,6 @@ func Init(cfg *config.Config, bot *tgbotapi.BotAPI, wg *sync.WaitGroup,
 		wg:          wg,
 		mrToBotChan: mrToBotChan,
 		doneChan:    doneChan,
+		templ:       templ,
 	}
 }

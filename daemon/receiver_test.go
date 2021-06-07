@@ -33,11 +33,9 @@ func TestTyp_createMsg(t1 *testing.T) {
 				cfg: &config.Config{
 					Users: struct {
 						Dictionary []string `yaml:"dictionary"`
+						Field      string   `yaml:"_"`
 					}{
-						Dictionary: []string{
-							"first",
-							"second",
-						},
+						Field: "@first @second",
 					},
 				},
 			},

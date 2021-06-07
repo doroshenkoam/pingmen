@@ -8,6 +8,7 @@ import (
 	"pingmen/daemon"
 	"pingmen/glab"
 	"pingmen/logWrap"
+	"pingmen/template"
 	"sync"
 
 	tg "github.com/go-telegram-bot-api/telegram-bot-api"
@@ -17,7 +18,8 @@ import (
 
 func init() {
 	logrus.SetFormatter(&logrus.TextFormatter{
-		ForceColors: true,
+		ForceColors:   true,
+		FullTimestamp: true,
 	})
 
 	logrus.SetOutput(os.Stdout)
@@ -29,14 +31,18 @@ func main() {
 	var (
 		exitCode = 1
 		cfg      config.Config
+		templ    string
+		err      error
 		logger   = logWrap.SetBaseFields("main", "main")
 	)
 
 	flg := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
-	cfgFile := flg.String("c", "", "-c <path to сonfig file>")
-	flg.StringVar(cfgFile, "cfg", "", "--config <path to сonfig file>")
+	cfgFile := flg.String("c", "", "-c <path to config file>")
+	flg.StringVar(cfgFile, "config", "", "--config <path to config file>")
 	logFile := flg.String("l", "", "-l <path to log file>")
 	flg.StringVar(logFile, "log", "", "--log <path to log file>")
+	templateFile := flg.String("t", "", "-t <path to template file>")
+	flg.StringVar(cfgFile, "template", "", "--template <path to template file>")
 	helpFlag := flg.Bool("h", false, "help flag usage")
 	flg.BoolVar(helpFlag, "help", false, "help flag usage")
 	flg.Parse(os.Args[1:])
@@ -80,11 +86,24 @@ func main() {
 
 	logWrap.SetLogLevel(cfg.Loglevel)
 
+	//TODO: проверка нил поинтера
+	if *templateFile != "" {
+		logger.Info("Template file is: %s", *templateFile)
+
+		if templ, err = template.Load(*templateFile); err != nil {
+			logger.WithField(
+				"error", err,
+			).Fatal("Template file read error")
+			os.Exit(exitCode)
+		}
+	}
+	exitCode++
+
 	bot, err := tg.NewBotAPI(cfg.Telegram.Token)
 	if err != nil {
 		logger.WithField(
 			"error", err,
-		).Info("Bot initing error")
+		).Info("Bot init error")
 
 		os.Exit(exitCode)
 	}
@@ -108,7 +127,7 @@ func main() {
 
 	wg := sync.WaitGroup{}
 
-	d := daemon.Init(&cfg, bot, &wg, mrChan, doneChan)
+	d := daemon.Init(&cfg, bot, &wg, mrChan, doneChan, &templ)
 	d.Receiver()
 
 	g := glab.Init(&cfg, mrChan, doneChan, &wg)

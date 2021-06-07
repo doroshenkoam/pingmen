@@ -3,6 +3,7 @@ package daemon
 import (
 	"fmt"
 	"pingmen/logWrap"
+	"pingmen/template"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -37,7 +38,7 @@ func (t *Typ) receiverWorker(n int) {
 
 	defer func() {
 		if err := recover(); err != nil {
-			logger.Panic("PANIC: %#v", err)
+			logger.Panic("PANIC: ", err)
 		}
 	}()
 
@@ -57,6 +58,11 @@ func (t *Typ) receiverWorker(n int) {
 				logger.WithField(
 					"action", mr.ObjectAttributes.Action,
 				).Debug("Skip mr")
+				continue
+			}
+
+			if t.templ != nil && *t.templ != "" {
+				t.sendMsg(template.CreateMsg(t.cfg, *t.templ, mr))
 				continue
 			}
 
@@ -105,16 +111,7 @@ func (t *Typ) createMsg(mr *gitlab.MergeEvent) string {
 	msg.WriteString("\n")
 	msg.WriteString(mr.ObjectAttributes.Description)
 	msg.WriteString("\n")
-
-	for i := range t.cfg.Users.Dictionary {
-
-		if i != 0 {
-			msg.WriteString(" ")
-		}
-
-		msg.WriteString("@")
-		msg.WriteString(t.cfg.Users.Dictionary[i])
-	}
+	msg.WriteString(t.cfg.Users.Field)
 
 	return msg.String()
 }
@@ -125,7 +122,6 @@ func (t *Typ) sendMsg(msg string) {
 		logger = logWrap.SetBaseFields("daemon", "sendMsg")
 	)
 
-	// TODO:
 	logger.WithFields(logrus.Fields{
 		"chat_id": t.cfg.Telegram.ChatID,
 		"message": msg,
