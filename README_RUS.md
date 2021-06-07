@@ -8,7 +8,8 @@
 4. [Файл конфигурации](#cfgfile)
 5. [Настройка telegram](#cfgtelegram)
 6. [Настройка gitlab](#cfggitlab)
-7. [TODO](#todo)
+7. [Шаблоны](#template)
+8. [TODO](#todo)
 
 ## Запуск без сборки <a name="run"></a>
 ```zsh
@@ -31,16 +32,20 @@ chmod +x pingmen
 ## Флаги <a name="flags"></a>
 ```zsh
 -c string
--c <path to сonfig file>
--cfg string
---config <path to сonfig file>
--h    help flag usage
+  	-c <path to config file>
+-config string
+  	--config <path to config file>
+-h	help flag usage
 -help
-help flag usage
+  	help flag usage
 -l string
--l <path to log file>
+  	-l <path to log file>
 -log string
---log <path to log file>
+  	--log <path to log file>
+-t string
+  	-t <path to template file>
+-template string
+  	--template <path to template file>
 ```
 
 ## Файл конфигурации <a name="cfgfile"></a>
@@ -90,6 +95,34 @@ https://api.telegram.org/bot<bot_token>/getUpdates
 4. Нажать кнопку ```Add webhook```
 5. Созданный webhook можно протестировать -> кнопка ```Test```
 
+# Шаблоны <a name="template"></a>
+Бот поддерживает создание стандартного сообщения в формате
+```text
+Merge request title
+https://gitlab.com/doroshenkoam/project/-/merge_requests/1
+Some descriptions
+@first @second @third
+```
+Кроме того можно задать шаблон путем передачи текстового файла через флаг t (template)
+```zsh
+./pingmen -c <your_config_file_name>.yaml -t <your_template>.txt
+```
+
+Алиасы в шаблонах
+
+|Алиас|Описание|
+|:----|:-------|
+|```{{Project Name}}```|Имя проекта|
+|```{{Project Description}}```|Описание проекта|
+|```{{ObjectAttributes Action}}```|Действие в реквесте|
+|```{{ObjectAttributes Title}}```|Титул события реквеста|
+|```{{ObjectAttributes Description}}```|Описание реквеста|
+|```{{ObjectAttributes URL}}```|Полный URL реквеста|
+|```{{ObjectAttributes AuthorID}}```|Идентификатор автора реквеста|
+|```{{ObjectAttributes MergeUserID}}```|Идентификатор автора мерджа|
+|```{{ObjectAttributes MergeError}}```|Идентификатор ошибки реквеста|
+|```{{ObjectAttributes MergeStatus}}```|Статус мерджа|
+|```{{Users}}```|Пользователи, которых будем пинить в формате ```@first @second @third```|
+
 # TODO: <a name="todo"></a>
 1. Больше действий
-2. Шаблон сообщений

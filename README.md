@@ -9,7 +9,8 @@ Ping bot for gitlab merge requests
 4. [Configuration file](#cfgfile)
 5. [Configuration telegram](#cfgtelegram)
 6. [Configuration gitlab](#cfggitlab)
-7. [TODO](#todo)
+7. [Template](#template)
+8. [TODO](#todo)
 
 ## Running without build <a name="run"></a>
 ```zsh
@@ -32,16 +33,20 @@ chmod +x pingmen
 ## Flags <a name="flags"></a>
 ```zsh
 -c string
--c <path to сonfig file>
--cfg string
---config <path to сonfig file>
--h    help flag usage
+  	-c <path to config file>
+-config string
+  	--config <path to config file>
+-h	help flag usage
 -help
-help flag usage
+  	help flag usage
 -l string
--l <path to log file>
+  	-l <path to log file>
 -log string
---log <path to log file>
+  	--log <path to log file>
+-t string
+  	-t <path to template file>
+-template string
+  	--template <path to template file>
 ```
 
 ## Configuration file <a name="cfgfile"></a>
@@ -91,6 +96,34 @@ Project -> ```Settings``` -> ```Webhooks```
 4. Press button ```Add webhook```
 5. Created webhook can be tested -> button ```Test```
 
+# Template <a name="template"></a>
+The bot supports the creation of a standard message in the format
+```text
+Merge request title
+https://gitlab.com/doroshenkoam/project/-/merge_requests/1
+Some descriptions
+@first @second @third
+```
+Alternatively, you can set a template by passing a text file via the t (template) flag
+```zsh
+./pingmen -c <your_config_file_name>.yaml -t <your_template>.txt
+```
+
+Aliases in templates
+
+|Alias|Description|
+|:----|:----------|
+|```{{Project Name}}```|Project name|
+|```{{Project Description}}```|Description of the project|
+|```{{ObjectAttributes Action}}```|Request action|
+|```{{ObjectAttributes Title}}```|Request event title|
+|```{{ObjectAttributes Description}}```|Request description|
+|```{{ObjectAttributes URL}}```|Full request URL|
+|```{{ObjectAttributes AuthorID}}```|Request author ID|
+|```{{ObjectAttributes MergeUserID}}```|Merge author ID|
+|```{{ObjectAttributes MergeError}}```|Request error ID|
+|```{{ObjectAttributes MergeStatus}}```|Merge status|
+|```{{Users}}```|Users who will be called in the format ```@first @second @third```|
+
 # TODO: <a name="todo"></a>
 1. More actions
-2. Message templates

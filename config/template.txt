@@ -1,0 +1,11 @@
+Project Name - {{Project Name}}
+Project Description - {{Project Description}}
+ObjectAttributes Action - {{ObjectAttributes Action}}
+ObjectAttributes Title - {{ObjectAttributes Title}}
+ObjectAttributes Description - {{ObjectAttributes Description}}
+ObjectAttributes URL - {{ObjectAttributes URL}}
+ObjectAttributes AuthorID - {{ObjectAttributes AuthorID}}
+ObjectAttributes MergeUserID - {{ObjectAttributes MergeUserID}}
+ObjectAttributes MergeError - {{ObjectAttributes MergeError}}
+ObjectAttributes MergeStatus - {{ObjectAttributes MergeStatus}}
+Users - {{Users}}
