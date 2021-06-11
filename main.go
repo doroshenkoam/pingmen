@@ -86,7 +86,6 @@ func main() {
 
 	logWrap.SetLogLevel(cfg.Loglevel)
 
-	//TODO: проверка нил поинтера
 	if *templateFile != "" {
 		logger.Info("Template file is: %s", *templateFile)
 
@@ -133,13 +132,9 @@ func main() {
 	g := glab.Init(&cfg, mrChan, doneChan, &wg)
 	g.Run()
 
-mLoop:
-	for {
-		select {
-		case <-interrupter:
-			close(doneChan)
-			wg.Wait()
-			break mLoop
-		}
+	for range interrupter {
+		close(doneChan)
+		wg.Wait()
+		break
 	}
 }

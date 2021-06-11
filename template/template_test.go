@@ -1,46 +1,67 @@
-package daemon
+package template
 
 import (
 	"pingmen/config"
-	"sync"
 	"testing"
 	"time"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/xanzy/go-gitlab"
 )
 
-func TestTyp_createMsg(t1 *testing.T) {
-	type fields struct {
-		cfg         *config.Config
-		bot         *tgbotapi.BotAPI
-		wg          *sync.WaitGroup
-		mrToBotChan <-chan *gitlab.MergeEvent
-		doneChan    <-chan struct{}
-	}
+func TestCreateMsg(t *testing.T) {
 	type args struct {
-		mr *gitlab.MergeEvent
+		cfg  *config.Config
+		tmpl string
+		mr   *gitlab.MergeEvent
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   string
+		name string
+		args args
+		want string
 	}{
 		{
 			name: "success",
-			fields: fields{
+			args: args{
 				cfg: &config.Config{
 					Users: struct {
 						Dictionary []string `yaml:"dictionary"`
 						Field      string   `yaml:"_"`
 					}{
-						Field: "@first @second",
+						Field: "@first @second @third",
 					},
 				},
-			},
-			args: args{
+				tmpl: `Project Name - {{Project Name}}
+Project Description - {{Project Description}}
+ObjectAttributes Action - {{ObjectAttributes Action}}
+ObjectAttributes Title - {{ObjectAttributes Title}}
+ObjectAttributes Description - {{ObjectAttributes Description}}
+ObjectAttributes URL - {{ObjectAttributes URL}}
+ObjectAttributes AuthorID - {{ObjectAttributes AuthorID}}
+ObjectAttributes MergeUserID - {{ObjectAttributes MergeUserID}}
+ObjectAttributes MergeError - {{ObjectAttributes MergeError}}
+ObjectAttributes MergeStatus - {{ObjectAttributes MergeStatus}}
+Users - {{Users}}`,
 				mr: &gitlab.MergeEvent{
+					Project: struct {
+						ID                int                    `json:"id"`
+						Name              string                 `json:"name"`
+						Description       string                 `json:"description"`
+						AvatarURL         string                 `json:"avatar_url"`
+						GitSSHURL         string                 `json:"git_ssh_url"`
+						GitHTTPURL        string                 `json:"git_http_url"`
+						Namespace         string                 `json:"namespace"`
+						PathWithNamespace string                 `json:"path_with_namespace"`
+						DefaultBranch     string                 `json:"default_branch"`
+						Homepage          string                 `json:"homepage"`
+						URL               string                 `json:"url"`
+						SSHURL            string                 `json:"ssh_url"`
+						HTTPURL           string                 `json:"http_url"`
+						WebURL            string                 `json:"web_url"`
+						Visibility        gitlab.VisibilityValue `json:"visibility"`
+					}{
+						Name:        "My Project",
+						Description: "My Description",
+					},
 					ObjectAttributes: struct {
 						ID                       int                 `json:"id"`
 						TargetBranch             string              `json:"target_branch"`
@@ -92,27 +113,34 @@ func TestTyp_createMsg(t1 *testing.T) {
 						OldRev         string               `json:"oldrev"`
 						Assignee       gitlab.MergeAssignee `json:"assignee"`
 					}{
-						Description: "Our description",
-						URL:         "gitlab.com/merge_requests/1",
-						Title:       "Merge",
 						Action:      "open",
+						Title:       "New merge",
+						Description: "Somethings",
+						URL:         "gitlab.com/merge_requests/1",
+						AuthorID:    1,
+						MergeUserID: 2,
+						MergeError:  "error",
+						MergeStatus: "failed",
 					},
 				},
 			},
-			want: "open: Merge\ngitlab.com/merge_requests/1\nOur description\n@first @second",
+			want: `Project Name - My Project
+Project Description - My Description
+ObjectAttributes Action - open
+ObjectAttributes Title - New merge
+ObjectAttributes Description - Somethings
+ObjectAttributes URL - gitlab.com/merge_requests/1
+ObjectAttributes AuthorID - 1
+ObjectAttributes MergeUserID - 2
+ObjectAttributes MergeError - error
+ObjectAttributes MergeStatus - failed
+Users - @first @second @third`,
 		},
 	}
 	for _, tt := range tests {
-		t1.Run(tt.name, func(t1 *testing.T) {
-			t := &Typ{
-				cfg:         tt.fields.cfg,
-				bot:         tt.fields.bot,
-				wg:          tt.fields.wg,
-				mrToBotChan: tt.fields.mrToBotChan,
-				doneChan:    tt.fields.doneChan,
-			}
-			if got := t.createMsg(tt.args.mr); got != tt.want {
-				t1.Errorf("createMsg() = %v, want %v", got, tt.want)
+		t.Run(tt.name, func(t *testing.T) {
+			if got := CreateMsg(tt.args.cfg, tt.args.tmpl, tt.args.mr); got != tt.want {
+				t.Errorf("CreateMsg() = %v, want %v", got, tt.want)
 			}
 		})
 	}
