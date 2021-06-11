@@ -22,7 +22,7 @@ func (t *Typ) Receiver() {
 	logger.Info("Receiver start")
 	defer logger.Info("Receiver end")
 
-	for n := 0; n < t.cfg.Telegram.WorkersCount; n++ {
+	for n := 1; n <= t.cfg.Telegram.WorkersCount; n++ {
 		t.wg.Add(1)
 		go t.receiverWorker(n)
 	}
